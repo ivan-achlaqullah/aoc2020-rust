@@ -2,75 +2,10 @@ use regex::Regex;
 use std::collections::HashSet;
 use std::fs;
 
-#[derive(Hash, Eq, PartialEq, Debug)]
-struct _Vertex {
-    x: u32,
-    y: u32,
-}
-
-fn load_day03(filename: &str) -> (_Vertex, HashSet<_Vertex>) {
-    let input = fs::read_to_string(filename).unwrap();
-    let mut cordinate: HashSet<_Vertex> = HashSet::new();
-    let mut x_length: Option<u8> = None;
-    let mut y_length = 0;
-    for (y, straight) in input.lines().enumerate() {
-        if x_length.is_none() {
-            let i = straight.len() as u8;
-            x_length = Some(i);
-        }
-        for (x, target) in straight.chars().enumerate() {
-            if target != '#' {
-                continue;
-            }
-            let i = _Vertex {
-                x: x as u32,
-                y: y as u32,
-            };
-            cordinate.insert(i);
-        }
-        y_length += 1;
-    }
-    let length = _Vertex {
-        x: x_length.unwrap() as u32,
-        y: y_length,
-    };
-    (length, cordinate)
-}
-
-fn travel(right: u32, down: u32, limit: &_Vertex, input: &HashSet<_Vertex>) -> u64 {
-    let mut count = 0;
-    for i in 1..limit.y {
-        let x = i * right % limit.x;
-        let y = i * down;
-        if y > limit.y {break;}
-        let cord = _Vertex{x,y};
-        if input.contains(&cord) {
-            count += 1;
-        }
-    }
-    count
-}
-
 fn main() {
     println!("{:?}", Day01::new(".\\input\\01.txt"));
     println!("{:?}", Day02::new(".\\input\\02.txt"));
-
-    let (length, input) = load_day03(".\\input\\03.txt");
-    let mut count = 0;
-    for y in 1..length.y {
-        let x = y * 3 % length.x;
-        let cord = _Vertex{x,y};
-        if input.contains(&cord) {
-            count += 1;
-        }
-    }
-    println!("Day 03 Part One: {}", count);
-    let mut count = travel(1, 1, &length, &input);
-    count *= travel(3, 1, &length, &input);
-    count *= travel(5, 1, &length, &input);
-    count *= travel(7, 1, &length, &input);
-    count *= travel(1, 2, &length, &input);
-    println!("Day Test {}", count);
+    println!("{:?}", Day03::new(".\\input\\03.txt"));
 }
 
 #[derive(Debug)]
@@ -194,5 +129,74 @@ impl Day02 {
             };
         }
         valid
+    }
+}
+
+#[derive(Hash, Eq, PartialEq, Debug)]
+struct _Vertex {
+    x: u32,
+    y: u32,
+}
+
+#[derive(Debug)]
+struct Day03(u64, u64);
+
+impl Day03 {
+    fn new(filename: &str) -> Day03 {
+        let (limit, input) = Day03::_load(filename);
+        let part_one = Day03::_travel(3, 1, &limit, &input);
+
+        let mut part_two = Day03::_travel(1, 1, &limit, &input);
+        part_two *= Day03::_travel(3, 1, &limit, &input);
+        part_two *= Day03::_travel(5, 1, &limit, &input);
+        part_two *= Day03::_travel(7, 1, &limit, &input);
+        part_two *= Day03::_travel(1, 2, &limit, &input);
+
+        Day03(part_one, part_two)
+    }
+
+    fn _load(filename: &str) -> (_Vertex, HashSet<_Vertex>) {
+        let input = fs::read_to_string(filename).unwrap();
+        let mut cordinate: HashSet<_Vertex> = HashSet::new();
+        let mut x_length: Option<u8> = None;
+        let mut y_length = 0;
+        for (y, straight) in input.lines().enumerate() {
+            if x_length.is_none() {
+                let i = straight.len() as u8;
+                x_length = Some(i);
+            }
+            for (x, target) in straight.chars().enumerate() {
+                if target != '#' {
+                    continue;
+                }
+                let i = _Vertex {
+                    x: x as u32,
+                    y: y as u32,
+                };
+                cordinate.insert(i);
+            }
+            y_length += 1;
+        }
+        let length = _Vertex {
+            x: x_length.unwrap() as u32,
+            y: y_length,
+        };
+        (length, cordinate)
+    }
+
+    fn _travel(right: u32, down: u32, limit: &_Vertex, input: &HashSet<_Vertex>) -> u64 {
+        let mut count = 0;
+        for i in 1..limit.y {
+            let x = i * right % limit.x;
+            let y = i * down;
+            if y > limit.y {
+                break;
+            }
+            let cord = _Vertex { x, y };
+            if input.contains(&cord) {
+                count += 1;
+            }
+        }
+        count
     }
 }
