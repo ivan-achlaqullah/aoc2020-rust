@@ -1,6 +1,6 @@
-use std::fs;
-use std::collections::HashSet;
 use regex::Regex;
+use std::collections::HashSet;
+use std::fs;
 
 #[derive(Debug)]
 struct _Pass {
@@ -19,7 +19,7 @@ fn load_day_02(filename: &str) -> Vec<_Pass> {
         let cap = re.captures(i);
         let cap = match cap {
             None => continue,
-            Some(x) => x
+            Some(x) => x,
         };
         let pass_char = cap["char"].chars().next().unwrap();
         let result: _Pass = _Pass {
@@ -34,6 +34,19 @@ fn load_day_02(filename: &str) -> Vec<_Pass> {
     output
 }
 
+fn part_one(input: &[_Pass]) -> i64 {
+    let mut valid = 0;
+    for i in input.iter() {
+        let mut count = i.pass.clone();
+        count.retain(|x| x == i.target);
+        let count = count.len() as u8;
+        if i.min <= count && count <= i.max {
+            valid += 1;
+        };
+    }
+    valid
+}
+
 fn main() {
     println!("{:?}", Day01::new(".\\input\\01.txt"));
 
@@ -41,13 +54,7 @@ fn main() {
     println!("Regex Parse: {:#?}", &input[0]);
     println!("Total: {}", &input.len());
 
-    let mut valid = 0;
-    for i in input.iter() {
-        let mut count = i.pass.clone();
-        count.retain(|x| x == i.target);
-        let count = count.len() as u8;
-        if i.min <= count && count <= i.max {valid += 1;};
-    }
+    let valid = part_one(&input);
     println!("Valid (Part One): {}", &valid);
 }
 
