@@ -2,25 +2,53 @@ use std::fs;
 use std::collections::HashSet;
 use regex::Regex;
 
-fn main() {
-    println!("{:?}", Day01::new(".\\input\\01.txt"));
+#[derive(Debug)]
+struct _Pass {
+    min: u8,
+    max: u8,
+    target: char,
+    pass: String,
+}
+
+fn load_day_02(filename: &str) -> Vec<_Pass> {
     let re = Regex::new(r"(?P<min>\d+).(?P<max>\d+).(?P<char>\w)..(?P<pass>\w+)").unwrap();
-    let input = fs::read_to_string(".\\input\\02.txt").unwrap();
-    for (i,j) in input.lines().enumerate() {
-        let cap = re.captures(j);
+    let input = fs::read_to_string(filename).unwrap();
+    let mut output: Vec<_Pass> = Vec::new();
+
+    for i in input.lines() {
+        let cap = re.captures(i);
         let cap = match cap {
             None => continue,
             Some(x) => x
         };
-        println!("Lines {}", i);
-        println!("{}",j);
-        println!("{}, {}, {}, {}",
-            &cap["min"],
-            &cap["max"],
-            &cap["char"],
-            &cap["pass"]
-        );
+        let pass_char = cap["char"].chars().next().unwrap();
+        let result: _Pass = _Pass {
+            min: cap["min"].parse().unwrap(),
+            max: cap["max"].parse().unwrap(),
+            target: pass_char,
+            pass: cap["pass"].to_string(),
+        };
+        output.push(result);
     }
+
+    output
+}
+
+fn main() {
+    println!("{:?}", Day01::new(".\\input\\01.txt"));
+
+    let input = load_day_02(".\\input\\02.txt");
+    println!("Regex Parse: {:#?}", &input[0]);
+    println!("Total: {}", &input.len());
+
+    let mut valid = 0;
+    for i in input.iter() {
+        let mut count = i.pass.clone();
+        count.retain(|x| x == i.target);
+        let count = count.len() as u8;
+        if i.min <= count && count <= i.max {valid += 1;};
+    }
+    println!("Valid (Part One): {}", &valid);
 }
 
 #[derive(Debug)]
