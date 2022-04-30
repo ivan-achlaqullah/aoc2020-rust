@@ -1,8 +1,26 @@
-use std::collections::HashSet;
 use std::fs;
+use std::collections::HashSet;
+use regex::Regex;
 
 fn main() {
     println!("{:?}", Day01::new(".\\input\\01.txt"));
+    let re = Regex::new(r"(?P<min>\d+).(?P<max>\d+).(?P<char>\w)..(?P<pass>\w+)").unwrap();
+    let input = fs::read_to_string(".\\input\\02.txt").unwrap();
+    for (i,j) in input.lines().enumerate() {
+        let cap = re.captures(j);
+        let cap = match cap {
+            None => continue,
+            Some(x) => x
+        };
+        println!("Lines {}", i);
+        println!("{}",j);
+        println!("{}, {}, {}, {}",
+            &cap["min"],
+            &cap["max"],
+            &cap["char"],
+            &cap["pass"]
+        );
+    }
 }
 
 #[derive(Debug)]
