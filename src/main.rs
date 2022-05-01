@@ -1,11 +1,89 @@
-use regex::Regex;
+use regex::{Captures, Regex};
 use std::collections::HashSet;
 use std::fs;
+
+#[derive(Debug)]
+enum _PassportId {
+    Byr(String),
+    Iyr(String),
+    Eyr(String),
+    Hgt(String),
+    Hcl(String),
+    Ecl(String),
+    Pid(String),
+    Cid(String),
+}
+
+fn passport_match(capture: &Captures) -> Option<_PassportId> {
+    let x = capture["type"].to_string();
+    let data = capture["data"].to_string();
+    match x.as_str() {
+        "byr" => Some(_PassportId::Byr(data)),
+        "iyr" => Some(_PassportId::Iyr(data)),
+        "eyr" => Some(_PassportId::Eyr(data)),
+        "hgt" => Some(_PassportId::Hgt(data)),
+        "hcl" => Some(_PassportId::Hcl(data)),
+        "ecl" => Some(_PassportId::Ecl(data)),
+        "pid" => Some(_PassportId::Pid(data)),
+        "cid" => Some(_PassportId::Cid(data)),
+        _ => None,
+    }
+}
+
+fn read_passport_id(filename: &str) -> Vec<Option<_PassportId>> {
+    let input = fs::read_to_string(filename).unwrap();
+    let re = Regex::new(r"(?P<type>\w{3}).(?P<data>\S+)").unwrap();
+    let mut passport_id_list: Vec<Option<_PassportId>> = Vec::new();
+
+    for (n, i) in input.lines().enumerate() {
+        if i.is_empty() {
+            passport_id_list.push(None);
+        }
+        for j in re.captures_iter(i) {
+            let x = passport_match(&j);
+            if x.is_none() {
+                panic!("Input error at line {}, no match.\nLines: {}", n, i);
+            }
+            passport_id_list.push(x);
+        }
+    }
+    if passport_id_list[passport_id_list.len() - 1].is_some() {
+        passport_id_list.push(None);
+    }
+    passport_id_list
+}
+
+fn part_one(input: &[Option<_PassportId>]) -> u32 {
+    let mut is_cid = false;
+    let mut valid = 0;
+    let mut current = 0;
+    for i in input.iter() {
+        match i {
+            Some(x) => {
+                current += 1;
+                if let _PassportId::Cid(_) = x {
+                    is_cid = true;
+                };
+            }
+            None => {
+                if !is_cid && current == 7 || current == 8 {
+                    valid += 1;
+                }
+                is_cid = false;
+                current = 0;
+            }
+        }
+    }
+    valid
+}
 
 fn main() {
     println!("{:?}", Day01::new(".\\input\\01.txt"));
     println!("{:?}", Day02::new(".\\input\\02.txt"));
     println!("{:?}", Day03::new(".\\input\\03.txt"));
+
+    let id_list = read_passport_id(".\\input\\04.txt");
+    println!("Valid {}", part_one(&id_list));
 }
 
 #[derive(Debug)]
