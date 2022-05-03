@@ -85,7 +85,7 @@ impl _Height {
             return None;
         }
         let num = num.unwrap();
-        
+
         let h_type = capture["type"].to_string();
         match h_type.as_str() {
             "cm" => Some(_Height::Cm(num)),
@@ -110,23 +110,21 @@ fn check_valid(id: &_PassportId) -> bool {
                 _Height::Cm(x) => 150 <= x && x <= 193,
                 _Height::Inch(x) => 59 <= x && x <= 76,
             }
-        },
+        }
         _PassportId::Hcl(x) => {
             let re = Regex::new(r"\#[0-9a-f]{6}").unwrap();
             let cap = re.captures(x);
             cap.is_some()
-        },
-        _PassportId::Ecl(x) => {
-            match x.as_str() {
-                "amb" => true,
-                "blu" => true,
-                "brn" => true,
-                "gry" => true,
-                "grn" => true,
-                "hzl" => true,
-                "oth" => true,
-                _ => false,
-            }
+        }
+        _PassportId::Ecl(x) => match x.as_str() {
+            "amb" => true,
+            "blu" => true,
+            "brn" => true,
+            "gry" => true,
+            "grn" => true,
+            "hzl" => true,
+            "oth" => true,
+            _ => false,
         },
         _PassportId::Pid(x) => {
             let re = Regex::new(r"\d{9}").unwrap();
@@ -188,8 +186,6 @@ fn main() {
     println!("Test invalid: {}", invalid);
 
     println!("Part 2: {}", part_one(&id_list, true));
-
-
 }
 
 #[derive(Debug)]
