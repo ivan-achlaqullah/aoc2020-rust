@@ -53,7 +53,7 @@ fn read_passport_id(filename: &str) -> Vec<Option<_PassportId>> {
     passport_id_list
 }
 
-fn parse_year(input: &String, min: i32, max: i32) -> bool {
+fn parse_year(input: &str, min: i32, max: i32) -> bool {
     if input.len() != 4 {
         return false;
     }
@@ -72,7 +72,7 @@ enum _Height {
 }
 
 impl _Height {
-    fn parse(input: &String) -> Option<_Height> {
+    fn parse(input: &str) -> Option<_Height> {
         let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
         let capture = re.captures(input);
         if capture.is_none() {
@@ -112,24 +112,22 @@ fn check_valid(id: &_PassportId) -> bool {
             }
         }
         _PassportId::Hcl(x) => {
-            let re = Regex::new(r"\#[0-9a-f]{6}").unwrap();
+            let re = Regex::new(r"\#(?P<hexs>[0-9a-f]+)").unwrap();
             let cap = re.captures(x);
-            cap.is_some()
+            if cap.is_none() {
+                return false;
+            }
+            let cap = cap.unwrap();
+            let cap = cap["hexs"].to_string();
+            cap.len() == 6
         }
-        _PassportId::Ecl(x) => match x.as_str() {
-            "amb" => true,
-            "blu" => true,
-            "brn" => true,
-            "gry" => true,
-            "grn" => true,
-            "hzl" => true,
-            "oth" => true,
-            _ => false,
-        },
+        _PassportId::Ecl(x) => matches!(x.as_str(), "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"),
         _PassportId::Pid(x) => {
-            let re = Regex::new(r"\d{9}").unwrap();
+            let re = Regex::new(r"(?P<id>\d+)").unwrap();
             let cap = re.captures(x);
-            cap.is_some()
+            let cap = cap.unwrap();
+            let cap = cap["id"].to_string();
+            cap.len() == 9
         }
         _PassportId::Cid(_) => true,
     }
