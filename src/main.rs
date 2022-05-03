@@ -97,7 +97,7 @@ impl _Height {
 
 fn check_valid(id: &_PassportId) -> bool {
     match id {
-        _PassportId::Byr(x) => parse_year(x, 1920, 2020),
+        _PassportId::Byr(x) => parse_year(x, 1920, 2002),
         _PassportId::Iyr(x) => parse_year(x, 2010, 2020),
         _PassportId::Eyr(x) => parse_year(x, 2020, 2030),
         _PassportId::Hgt(x) => {
