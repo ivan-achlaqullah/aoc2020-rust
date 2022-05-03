@@ -53,24 +53,118 @@ fn read_passport_id(filename: &str) -> Vec<Option<_PassportId>> {
     passport_id_list
 }
 
-fn part_one(input: &[Option<_PassportId>]) -> u32 {
+fn parse_year(input: &String, min: i32, max: i32) -> bool {
+    if input.len() != 4 {
+        return false;
+    }
+    let year = input.parse::<i32>();
+    if year.is_err() {
+        return false;
+    }
+    let year = year.unwrap();
+    min <= year && year <= max
+}
+
+#[derive(Debug)]
+enum _Height {
+    Cm(i32),
+    Inch(i32),
+}
+
+impl _Height {
+    fn parse(input: &String) -> Option<_Height> {
+        let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
+        let capture = re.captures(input);
+        if capture.is_none() {
+            return None;
+        }
+        let capture = capture.unwrap();
+
+        let num = capture["num"].parse::<i32>();
+        if num.is_err() {
+            return None;
+        }
+        let num = num.unwrap();
+        
+        let h_type = capture["type"].to_string();
+        match h_type.as_str() {
+            "cm" => Some(_Height::Cm(num)),
+            "in" => Some(_Height::Inch(num)),
+            _ => None,
+        }
+    }
+}
+
+fn check_valid(id: &_PassportId) -> bool {
+    match id {
+        _PassportId::Byr(x) => parse_year(x, 1920, 2020),
+        _PassportId::Iyr(x) => parse_year(x, 2010, 2020),
+        _PassportId::Eyr(x) => parse_year(x, 2020, 2030),
+        _PassportId::Hgt(x) => {
+            let height = _Height::parse(x);
+            if height.is_none() {
+                return false;
+            }
+            let height = height.unwrap();
+            match height {
+                _Height::Cm(x) => 150 <= x && x <= 193,
+                _Height::Inch(x) => 59 <= x && x <= 76,
+            }
+        },
+        _PassportId::Hcl(x) => {
+            let re = Regex::new(r"\#[0-9a-f]{6}").unwrap();
+            let cap = re.captures(x);
+            cap.is_some()
+        },
+        _PassportId::Ecl(x) => {
+            match x.as_str() {
+                "amb" => true,
+                "blu" => true,
+                "brn" => true,
+                "gry" => true,
+                "grn" => true,
+                "hzl" => true,
+                "oth" => true,
+                _ => false,
+            }
+        },
+        _PassportId::Pid(x) => {
+            let re = Regex::new(r"\d{9}").unwrap();
+            let cap = re.captures(x);
+            cap.is_some()
+        }
+        _PassportId::Cid(_) => true,
+    }
+}
+
+fn part_one(input: &[Option<_PassportId>], check_field: bool) -> u32 {
     let mut is_cid = false;
     let mut valid = 0;
     let mut current = 0;
+    let mut skip_until_none = false;
     for i in input.iter() {
         match i {
             Some(x) => {
+                if skip_until_none {
+                    continue;
+                }
+                let accept = check_valid(x);
+                if !accept && check_field {
+                    skip_until_none = true;
+                    continue;
+                }
                 current += 1;
                 if let _PassportId::Cid(_) = x {
                     is_cid = true;
                 };
             }
             None => {
-                if !is_cid && current == 7 || current == 8 {
+                if !is_cid && current == 7 || current == 8 && !skip_until_none {
                     valid += 1;
                 }
                 is_cid = false;
                 current = 0;
+                skip_until_none = false;
             }
         }
     }
@@ -83,7 +177,19 @@ fn main() {
     println!("{:?}", Day03::new(".\\input\\03.txt"));
 
     let id_list = read_passport_id(".\\input\\04.txt");
-    println!("Valid {}", part_one(&id_list));
+    println!("Valid {}", part_one(&id_list, false));
+
+    let valid = read_passport_id(".\\input\\test04valid.txt");
+    let valid = part_one(&valid, true);
+    println!("Test valid: {}", valid);
+
+    let invalid = read_passport_id(".\\input\\test04inval.txt");
+    let invalid = part_one(&invalid, true);
+    println!("Test invalid: {}", invalid);
+
+    println!("Part 2: {}", part_one(&id_list, true));
+
+
 }
 
 #[derive(Debug)]
