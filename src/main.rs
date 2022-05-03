@@ -75,9 +75,7 @@ impl _Height {
     fn parse(input: &str) -> Option<_Height> {
         let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
         let capture = re.captures(input);
-        if capture.is_none() {
-            return None;
-        }
+        capture.as_ref()?;
         let capture = capture.unwrap();
 
         let num = capture["num"].parse::<i32>();
@@ -107,8 +105,8 @@ fn check_valid(id: &_PassportId) -> bool {
             }
             let height = height.unwrap();
             match height {
-                _Height::Cm(x) => 150 <= x && x <= 193,
-                _Height::Inch(x) => 59 <= x && x <= 76,
+                _Height::Cm(x) => (150..=193).contains(&x),
+                _Height::Inch(x) => (59..=76).contains(&x),
             }
         }
         _PassportId::Hcl(x) => {
@@ -121,7 +119,10 @@ fn check_valid(id: &_PassportId) -> bool {
             let cap = cap["hexs"].to_string();
             cap.len() == 6
         }
-        _PassportId::Ecl(x) => matches!(x.as_str(), "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"),
+        _PassportId::Ecl(x) => matches!(
+            x.as_str(),
+            "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
+        ),
         _PassportId::Pid(x) => {
             let re = Regex::new(r"(?P<id>\d+)").unwrap();
             let cap = re.captures(x);
@@ -174,15 +175,6 @@ fn main() {
 
     let id_list = read_passport_id(".\\input\\04.txt");
     println!("Valid {}", part_one(&id_list, false));
-
-    let valid = read_passport_id(".\\input\\test04valid.txt");
-    let valid = part_one(&valid, true);
-    println!("Test valid: {}", valid);
-
-    let invalid = read_passport_id(".\\input\\test04inval.txt");
-    let invalid = part_one(&invalid, true);
-    println!("Test invalid: {}", invalid);
-
     println!("Part 2: {}", part_one(&id_list, true));
 }
 
