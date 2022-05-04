@@ -1,5 +1,5 @@
-use std::fs;
 use regex::Regex;
+use std::fs;
 mod day_01;
 mod day_02;
 mod day_03;
@@ -26,7 +26,13 @@ impl Day {
         if day.is_none() {
             return Err(AocErr::InputNotFound);
         }
-        let day = day.unwrap().name("day").unwrap().as_str().parse::<u8>().unwrap();
+        let day = day
+            .unwrap()
+            .name("day")
+            .unwrap()
+            .as_str()
+            .parse::<u8>()
+            .unwrap();
 
         let input = fs::read_to_string(filename);
         if input.is_err() {
