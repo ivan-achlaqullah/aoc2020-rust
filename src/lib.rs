@@ -1,4 +1,5 @@
 use std::fs;
+use regex::Regex;
 mod day_01;
 mod day_02;
 mod day_03;
@@ -14,11 +15,19 @@ pub struct Day {
 #[derive(Debug)]
 pub enum AocErr {
     InputNotFound,
+    InputNotValid,
     DayNotValid,
 }
 
 impl Day {
-    pub fn new(day: u8, filename: &str) -> Result<Day, AocErr> {
+    pub fn new(filename: &str) -> Result<Day, AocErr> {
+        let re = Regex::new(r"(?P<day>\d{2})").unwrap();
+        let day = re.captures(filename);
+        if day.is_none() {
+            return Err(AocErr::InputNotFound);
+        }
+        let day = day.unwrap().name("day").unwrap().as_str().parse::<u8>().unwrap();
+
         let input = fs::read_to_string(filename);
         if input.is_err() {
             return Err(AocErr::InputNotFound);
