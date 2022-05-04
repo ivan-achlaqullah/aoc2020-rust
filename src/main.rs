@@ -1,5 +1,6 @@
 use regex::{Captures, Regex};
 use std::fs;
+use std::time::Instant;
 
 use aoc2020_rust::Day;
 
@@ -174,9 +175,13 @@ fn main() {
     println!("{:?}", Day::new(2, ".\\input\\02.txt").unwrap());
     println!("{:?}", Day::new(3, ".\\input\\03.txt").unwrap());
 
+    let now = Instant::now();
     let id_list = read_passport_id(".\\input\\04.txt");
     println!("Valid {}", part_one(&id_list, false));
     println!("Part 2: {}", part_one(&id_list, true));
+    println!("Time elapsed {}ms", now.elapsed().as_millis());
 
+    let now = Instant::now();
     println!("{:?}", Day::new(4, ".\\input\\04.txt").unwrap());
+    println!("Time elapsed {}ms", now.elapsed().as_millis());
 }

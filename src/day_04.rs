@@ -1,4 +1,5 @@
 use regex::{Captures, Regex};
+use std::collections::HashMap;
 
 use crate::Day;
 
@@ -9,6 +10,15 @@ pub fn parse(raw_input: &str) -> Day {
         part_one: count_passports(&input, false).to_string(),
         part_two: count_passports(&input, true).to_string(),
     }
+}
+
+pub fn get_regex_hashmap() -> HashMap<String, Regex> {
+    let mut regex_hashmap: HashMap<String, Regex> = HashMap::new();
+
+    let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
+    regex_hashmap.insert("height".to_string(), re);
+
+    regex_hashmap
 }
 
 #[derive(Debug)]
@@ -80,8 +90,7 @@ enum Height {
 }
 
 impl Height {
-    fn parse(input: &str) -> Option<Height> {
-        let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
+    fn parse(input: &str, re: &Regex) -> Option<Height> {
         let capture = re.captures(input);
         capture.as_ref()?;
         let capture = capture.unwrap();
@@ -101,13 +110,13 @@ impl Height {
     }
 }
 
-fn is_valid(id: &PassportId) -> bool {
+fn is_valid(id: &PassportId, regex_hash: &HashMap<String, Regex>) -> bool {
     match id {
         PassportId::Byr(x) => parse_year(x, 1920, 2002),
         PassportId::Iyr(x) => parse_year(x, 2010, 2020),
         PassportId::Eyr(x) => parse_year(x, 2020, 2030),
         PassportId::Hgt(x) => {
-            let height = Height::parse(x);
+            let height = Height::parse(x, &regex_hash["height"]);
             if height.is_none() {
                 return false;
             }
@@ -143,6 +152,7 @@ fn is_valid(id: &PassportId) -> bool {
 }
 
 fn count_passports(input: &[Option<PassportId>], check_field: bool) -> u32 {
+    let regex_hash = get_regex_hashmap();
     let mut is_cid = false;
     let mut valid = 0;
     let mut current = 0;
@@ -153,7 +163,7 @@ fn count_passports(input: &[Option<PassportId>], check_field: bool) -> u32 {
                 if skip_until_none {
                     continue;
                 }
-                let accept = is_valid(x);
+                let accept = is_valid(x, &regex_hash);
                 if !accept && check_field {
                     skip_until_none = true;
                     continue;
