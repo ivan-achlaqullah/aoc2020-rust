@@ -1,6 +1,7 @@
 use std::fs;
 mod day_01;
 mod day_02;
+mod day_03;
 
 #[derive(Debug)]
 pub struct Day {
@@ -26,6 +27,7 @@ impl Day {
         match day {
             1 => Ok(day_01::parse(&input)),
             2 => Ok(day_02::parse(&input)),
+            3 => Ok(day_03::parse(&input)),
             _ => Err(AocErr::DayNotValid),
         }
     }
