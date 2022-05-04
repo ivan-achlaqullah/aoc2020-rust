@@ -1,10 +1,18 @@
 use regex::{Captures, Regex};
-use std::fs;
 
-use aoc2020_rust::Day;
+use crate::Day;
+
+pub fn parse(raw_input: &str) -> Day {
+    let input = read_passport_id(raw_input);
+    Day {
+        day: 4,
+        part_one: count_passports(&input, false).to_string(),
+        part_two: count_passports(&input, true).to_string(),
+    }
+}
 
 #[derive(Debug)]
-enum _PassportId {
+enum PassportId {
     Byr(String),
     Iyr(String),
     Eyr(String),
@@ -15,28 +23,27 @@ enum _PassportId {
     Cid(String),
 }
 
-fn passport_match(capture: &Captures) -> Option<_PassportId> {
+fn passport_match(capture: &Captures) -> Option<PassportId> {
     let x = capture["type"].to_string();
     let data = capture["data"].to_string();
     match x.as_str() {
-        "byr" => Some(_PassportId::Byr(data)),
-        "iyr" => Some(_PassportId::Iyr(data)),
-        "eyr" => Some(_PassportId::Eyr(data)),
-        "hgt" => Some(_PassportId::Hgt(data)),
-        "hcl" => Some(_PassportId::Hcl(data)),
-        "ecl" => Some(_PassportId::Ecl(data)),
-        "pid" => Some(_PassportId::Pid(data)),
-        "cid" => Some(_PassportId::Cid(data)),
+        "byr" => Some(PassportId::Byr(data)),
+        "iyr" => Some(PassportId::Iyr(data)),
+        "eyr" => Some(PassportId::Eyr(data)),
+        "hgt" => Some(PassportId::Hgt(data)),
+        "hcl" => Some(PassportId::Hcl(data)),
+        "ecl" => Some(PassportId::Ecl(data)),
+        "pid" => Some(PassportId::Pid(data)),
+        "cid" => Some(PassportId::Cid(data)),
         _ => None,
     }
 }
 
-fn read_passport_id(filename: &str) -> Vec<Option<_PassportId>> {
-    let input = fs::read_to_string(filename).unwrap();
+fn read_passport_id(raw_input: &str) -> Vec<Option<PassportId>> {
     let re = Regex::new(r"(?P<type>\w{3}).(?P<data>\S+)").unwrap();
-    let mut passport_id_list: Vec<Option<_PassportId>> = Vec::new();
+    let mut passport_id_list: Vec<Option<PassportId>> = Vec::new();
 
-    for (n, i) in input.lines().enumerate() {
+    for (n, i) in raw_input.lines().enumerate() {
         if i.is_empty() {
             passport_id_list.push(None);
         }
@@ -67,13 +74,13 @@ fn parse_year(input: &str, min: i32, max: i32) -> bool {
 }
 
 #[derive(Debug)]
-enum _Height {
+enum Height {
     Cm(i32),
     Inch(i32),
 }
 
-impl _Height {
-    fn parse(input: &str) -> Option<_Height> {
+impl Height {
+    fn parse(input: &str) -> Option<Height> {
         let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
         let capture = re.captures(input);
         capture.as_ref()?;
@@ -87,30 +94,30 @@ impl _Height {
 
         let h_type = capture["type"].to_string();
         match h_type.as_str() {
-            "cm" => Some(_Height::Cm(num)),
-            "in" => Some(_Height::Inch(num)),
+            "cm" => Some(Height::Cm(num)),
+            "in" => Some(Height::Inch(num)),
             _ => None,
         }
     }
 }
 
-fn check_valid(id: &_PassportId) -> bool {
+fn is_valid(id: &PassportId) -> bool {
     match id {
-        _PassportId::Byr(x) => parse_year(x, 1920, 2002),
-        _PassportId::Iyr(x) => parse_year(x, 2010, 2020),
-        _PassportId::Eyr(x) => parse_year(x, 2020, 2030),
-        _PassportId::Hgt(x) => {
-            let height = _Height::parse(x);
+        PassportId::Byr(x) => parse_year(x, 1920, 2002),
+        PassportId::Iyr(x) => parse_year(x, 2010, 2020),
+        PassportId::Eyr(x) => parse_year(x, 2020, 2030),
+        PassportId::Hgt(x) => {
+            let height = Height::parse(x);
             if height.is_none() {
                 return false;
             }
             let height = height.unwrap();
             match height {
-                _Height::Cm(x) => (150..=193).contains(&x),
-                _Height::Inch(x) => (59..=76).contains(&x),
+                Height::Cm(x) => (150..=193).contains(&x),
+                Height::Inch(x) => (59..=76).contains(&x),
             }
         }
-        _PassportId::Hcl(x) => {
+        PassportId::Hcl(x) => {
             let re = Regex::new(r"\#(?P<hexs>[0-9a-f]+)").unwrap();
             let cap = re.captures(x);
             if cap.is_none() {
@@ -120,22 +127,22 @@ fn check_valid(id: &_PassportId) -> bool {
             let cap = cap["hexs"].to_string();
             cap.len() == 6
         }
-        _PassportId::Ecl(x) => matches!(
+        PassportId::Ecl(x) => matches!(
             x.as_str(),
             "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
         ),
-        _PassportId::Pid(x) => {
+        PassportId::Pid(x) => {
             let re = Regex::new(r"(?P<id>\d+)").unwrap();
             let cap = re.captures(x);
             let cap = cap.unwrap();
             let cap = cap["id"].to_string();
             cap.len() == 9
         }
-        _PassportId::Cid(_) => true,
+        PassportId::Cid(_) => true,
     }
 }
 
-fn part_one(input: &[Option<_PassportId>], check_field: bool) -> u32 {
+fn count_passports(input: &[Option<PassportId>], check_field: bool) -> u32 {
     let mut is_cid = false;
     let mut valid = 0;
     let mut current = 0;
@@ -146,13 +153,13 @@ fn part_one(input: &[Option<_PassportId>], check_field: bool) -> u32 {
                 if skip_until_none {
                     continue;
                 }
-                let accept = check_valid(x);
+                let accept = is_valid(x);
                 if !accept && check_field {
                     skip_until_none = true;
                     continue;
                 }
                 current += 1;
-                if let _PassportId::Cid(_) = x {
+                if let PassportId::Cid(_) = x {
                     is_cid = true;
                 };
             }
@@ -167,16 +174,4 @@ fn part_one(input: &[Option<_PassportId>], check_field: bool) -> u32 {
         }
     }
     valid
-}
-
-fn main() {
-    println!("{:?}", Day::new(1, ".\\input\\01.txt").unwrap());
-    println!("{:?}", Day::new(2, ".\\input\\02.txt").unwrap());
-    println!("{:?}", Day::new(3, ".\\input\\03.txt").unwrap());
-
-    let id_list = read_passport_id(".\\input\\04.txt");
-    println!("Valid {}", part_one(&id_list, false));
-    println!("Part 2: {}", part_one(&id_list, true));
-
-    println!("{:?}", Day::new(4, ".\\input\\04.txt").unwrap());
 }

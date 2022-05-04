@@ -2,6 +2,7 @@ use std::fs;
 mod day_01;
 mod day_02;
 mod day_03;
+mod day_04;
 
 #[derive(Debug)]
 pub struct Day {
@@ -28,6 +29,7 @@ impl Day {
             1 => Ok(day_01::parse(&input)),
             2 => Ok(day_02::parse(&input)),
             3 => Ok(day_03::parse(&input)),
+            4 => Ok(day_04::parse(&input)),
             _ => Err(AocErr::DayNotValid),
         }
     }
