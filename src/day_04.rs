@@ -18,6 +18,12 @@ pub fn get_regex_hashmap() -> HashMap<String, Regex> {
     let re = Regex::new(r"(?P<num>\d+)(?P<type>\S{2})").unwrap();
     regex_hashmap.insert("height".to_string(), re);
 
+    let re = Regex::new(r"\#(?P<hexs>[0-9a-f]+)").unwrap();
+    regex_hashmap.insert("hcl".to_string(), re);
+
+    let re = Regex::new(r"(?P<id>\d+)").unwrap();
+    regex_hashmap.insert("pid".to_string(), re);
+
     regex_hashmap
 }
 
@@ -127,7 +133,7 @@ fn is_valid(id: &PassportId, regex_hash: &HashMap<String, Regex>) -> bool {
             }
         }
         PassportId::Hcl(x) => {
-            let re = Regex::new(r"\#(?P<hexs>[0-9a-f]+)").unwrap();
+            let re = &regex_hash["hcl"];
             let cap = re.captures(x);
             if cap.is_none() {
                 return false;
@@ -141,7 +147,7 @@ fn is_valid(id: &PassportId, regex_hash: &HashMap<String, Regex>) -> bool {
             "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
         ),
         PassportId::Pid(x) => {
-            let re = Regex::new(r"(?P<id>\d+)").unwrap();
+            let re = &regex_hash["pid"];
             let cap = re.captures(x);
             let cap = cap.unwrap();
             let cap = cap["id"].to_string();
