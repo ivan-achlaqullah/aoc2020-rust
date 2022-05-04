@@ -2,6 +2,8 @@ use regex::{Captures, Regex};
 use std::collections::HashSet;
 use std::fs;
 
+use aoc2020_rust::Day;
+
 #[derive(Debug)]
 enum _PassportId {
     Byr(String),
@@ -170,7 +172,11 @@ fn part_one(input: &[Option<_PassportId>], check_field: bool) -> u32 {
 
 fn main() {
     println!("{:?}", Day01::new(".\\input\\01.txt"));
+    println!("{:?}", Day::new(1, ".\\input\\01.txt").unwrap());
+
     println!("{:?}", Day02::new(".\\input\\02.txt"));
+    println!("{:?}", Day::new(2, ".\\input\\02.txt").unwrap());
+
     println!("{:?}", Day03::new(".\\input\\03.txt"));
 
     let id_list = read_passport_id(".\\input\\04.txt");
